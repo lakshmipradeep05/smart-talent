@@ -261,7 +261,9 @@ def parse_resume(
 
         experience_text = sections.get("experience", "")
         total_exp = extract_total_experience(experience_text or raw_text)
-
+        if total_exp == 0 and "projects" in sections:
+            project_count = sections["projects"].count("•")
+            total_exp = round(project_count * 0.3, 1)
         education = extract_education(sections.get("education", ""))
         certs     = extract_certifications(sections.get("certifications", ""))
         summary   = sections.get("summary", "")
@@ -274,6 +276,7 @@ def parse_resume(
             email=email,
             phone=phone,
             total_experience_years=round(total_exp, 1),
+            skills=unique_skills,
             education_entries=education,
             certifications=certs,
             summary=summary,

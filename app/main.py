@@ -1,18 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import store
-from app.routers import resumes
+from app.routers import resumes, jobs    # ← make sure jobs is here
 
 app = FastAPI(title="Smart Talent API")
 
-# This allows your React frontend (on port 5173) to talk to this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(resumes.router) # include the resume-related routes
+
+app.include_router(resumes.router)
+app.include_router(jobs.router)          # ← and this line exists
 
 @app.get("/health")
 def health_check():
@@ -21,13 +22,10 @@ def health_check():
 @app.get("/dashboard")
 def dashboard():
     stats = store.get_dashboard_stats()
-    resumes = store.get_all_resumes()
-
-    # Top 3 candidates by experience (for preview on dashboard)
-    top_talent = sorted(resumes, key=lambda r: r.total_experience_years, reverse=True)[:3]
-
+    resumes_list = store.get_all_resumes()
+    top_talent = sorted(resumes_list, key=lambda r: r.total_experience_years, reverse=True)[:3]
     return {
-        **stats,   # spreads total_resumes, total_jobs, resumes_by_role into the response
+        **stats,
         "top_talent": [
             {
                 "name": r.candidate_name,
